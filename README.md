@@ -1,0 +1,30 @@
+# BITS-Pilani
+Deodorant_B <- read.csv("file:///C:/Users/Arjit/Desktop/R wd/Deodorant B.csv")
+y<-as.factor(Deodorant_B$Instant.Liking)
+my_data<-Deodorant_B[,-c(1,2,3,4,6,33,51,52,53,57)]
+cols<-c("q1_1.personal.opinion.of.this.Deodorant","q3_1.strength.of.the.Deodorant","q4_1.artificial.chemical","q4_2.attractive","q_3.bold","q4_4.boring",      "q4_5.casual","q4_6.cheap","q4_7.clean","q4_8.easy.to.wear","q4_9.elegant","q4_10.feminine","q4_11.for.someone.like.me","q4_12.heavy","q4_13.high.quality","q4_14.long.lasting","q4_15.masculine","q4_16.memorable","q4_17.natural","q4_18.old.fashioned","q4_19.ordinary","q4_20.overpowering","q4_21.sharp","q4_22.sophisticated","q4_23.upscale","q4_24.well.rounded","q5_1.Deodorant.is.addictive","q8.1","q8.2","q8.5","q8.6","q8.8","q8.11","q8.12","q8.13","q8.19","q8.20","q9.how.likely.would.you.be.to.purchase.this.Deodorant","q10.prefer.this.Deodorant.or.your.usual.Deodorant","q11.time.of.day.would.this.Deodorant.be.appropriate","q12.which.occasions.would.this.Deodorant.be.appropriate","Q13_Liking.after.30.minutes","q14.Deodorant.overall.on.a.scale.from.1.to.10","ValSegb","s7.involved.in.the.selection.of.the.cosmetic.products","s10.income","s11.marital.status","s12.working.status", "s13a.b.most.often","s13b.bottles.of.Deodorant.do.you.currently.own")
+my_data[cols]<-lapply(my_data,factor)
+x<-cbind(my_data, y)
+library('Metrics')
+library('randomForest')
+library('ggplot2')
+library('ggthemes')
+library('dplyr')
+library('caret') 
+library('klaR')
+rf_model1<-randomForest(y~.,data =x)
+varImpPlot(rf_model1)
+ggplot(data = x,aes(x=x$y,fill=x$q1_1.personal.opinion.of.this.Deodorant))+geom_bar(position = "dodge")
+ggplot(data = x,aes(x=x$y,fill=x$s13b.bottles.of.Deodorant.do.you.currently.own))+geom_bar(position = "dodge")
+ggplot(data = x,aes(x=x$y,fill=x$q9.how.likely.would.you.be.to.purchase.this.Deodorant))+geom_bar(position = "dodge")
+train_control <- caret::trainControl(method="cv", number=10)
+model <- caret::train(y~q1_1.personal.opinion.of.this.Deodorant+s13b.bottles.of.Deodorant.do.you.currently.own+q9.how.likely.would.you.be.to.purchase.this.Deodorant, data=x, trControl=train_control, method="nb")
+my_test<-read.csv("file:///C:/Users/Arjit/Desktop/R wd/test_data.csv")
+my_final_test<-subset(my_test, Product=='Deodorant B')
+my_final_test<-my_final_test[,-c(1,2,3,5,32,51,52,56)]
+my_final_test$q1_1.personal.opinion.of.this.Deodorant=as.factor(my_final_test$q1_1.personal.opinion.of.this.Deodorant)
+my_final_test$q9.how.likely.would.you.be.to.purchase.this.Deodorant=as.factor(my_final_test$q9.how.likely.would.you.be.to.purchase.this.Deodorant)
+my_final_test$s13b.bottles.of.Deodorant.do.you.currently.own=as.factor(my_final_test$s13b.bottles.of.Deodorant.do.you.currently.own)
+predicted_B=as.data.frame(predict(model,my_final_test))
+
+
